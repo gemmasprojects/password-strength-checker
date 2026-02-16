@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+
+<!-- ⭐ This line makes the page fill the screen on mobile -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Ultimate Password Strength Checker</title>
+
+<style>
+    :root {
+        --bg: #f4f4f4;
+        --card: rgba(255, 255, 255, 0.8);
+        --text: #222;
+        --accent: #6c63ff;
+        --weak: #ff4d4d;
+        --medium: #ffa500;
+        --strong: #4caf50;
+    }
+
+    body.dark {
+        --bg: #1e1e2f;
+        --card: rgba(40, 40, 60, 0.6);
+        --text: #fff;
+    }
+
+    body {
+        font-family: "Inter", Arial, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        transition: background 0.4s ease;
+    }
+
+    .container {
+        backdrop-filter: blur(12px);
+        background: var(--card);
+        padding: 30px;
+        width: 380px;
+        border-radius: 20px;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        animation: fadeIn 0.7s ease;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    h2 {
+        text-align: center;
+        margin-bottom: 20px;
+        font-weight: 600;
+    }
+
+    .input-group {
+        position: relative;
+        display: flex;
+        justify-content: center;
+    }
+
+    input {
+        width: 75%;
+        padding: 12px 45px 12px 12px;
+        border-radius: 10px;
+        border: 2px solid var(--accent);
+        font-size: 16px;
+        outline: none;
+        text-align: left;
+    }
+
+    .icon-btn {
+        position: absolute;
+        right: 13%;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        font-size: 18px;
+        color: var(--accent);
+    }
+
+    #strengthLabel {
+        text-align: center;
+        font-weight: 600;
+        margin: 10px 0 5px 0;
+        font-size: 15px;
+    }
+
+    .strength-bar {
+        height: 12px;
+        width: 100%;
+        background: #ccc;
+        border-radius: 6px;
+        overflow: hidden;
+        margin: 10px 0;
+    }
+
+    .strength-fill {
+        height: 100%;
+        width: 0%;
+        transition: width 0.4s ease, background 0.4s ease;
+    }
+
+    .legend {
+        text-align: center;
+        font-size: 12px;
+        opacity: 0.7;
+        margin-bottom: 10px;
+    }
+
+    .requirements {
+        list-style: none;
+        padding: 0;
+        margin-top: 10px;
+    }
+
+    .requirements li {
+        margin: 6px 0;
+        display: flex;
+        align-items: center;
+        font-size: 14px;
+    }
+
+    .check { color: var(--strong); font-weight: bold; }
+    .cross { color: var(--weak); font-weight: bold; }
+
+    #crackTime {
+        text-align: center;
+        font-size: 14px;
+        margin-top: 10px;
+        font-weight: 500;
+    }
+
+    .btn-row {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+    }
+
+    button {
+        padding: 10px 15px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        background: var(--accent);
+        color: white;
+        font-size: 14px;
+        transition: 0.3s;
+    }
+
+    button:hover {
+        opacity: 0.8;
+    }
+
+    .toggle {
+        background: #444;
+    }
+
+    /* ⭐ MOBILE RESPONSIVE DESIGN ⭐ */
+    @media (max-width: 480px) {
+
+        body {
+            height: auto;
+            padding: 20px 0;
+        }
+
+        .container {
+            width: 90%;
+            padding: 20px;
+        }
+
+        input {
+            width: 85%;
+            font-size: 15px;
+            padding: 10px 40px 10px 10px;
+        }
+
+        .icon-btn {
+            right: 10%;
+            font-size: 16px;
+        }
+
+        h2 {
+            font-size: 20px;
+        }
+
+        #strengthLabel {
+            font-size: 14px;
+        }
+
+        .requirements li {
+            font-size: 13px;
+        }
+
+        button {
+            padding: 8px 10px;
+            font-size: 13px;
+        }
+
+        .btn-row {
+            gap: 5px;
+        }
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Password Strength Checker</h2>
+
+    <div class="input-group">
+        <input type="password" id="password" placeholder="Enter password..." oninput="checkPassword()">
+        <span class="icon-btn" onclick="togglePassword()">👁</span>
+    </div>
+
+    <p id="strengthLabel"></p>
+
+    <div class="strength-bar">
+        <div class="strength-fill" id="strengthFill"></div>
+    </div>
+
+    <div class="legend">
+        <span style="color:var(--weak)">● Weak</span> &nbsp;
+        <span style="color:var(--medium)">● Medium</span> &nbsp;
+        <span style="color:var(--strong)">● Strong</span>
+    </div>
+
+    <p id="crackTime"></p>
+
+    <ul class="requirements">
+        <li id="lenReq"><span class="cross">✖</span><span> At least 8 characters</span></li>
+        <li id="upperReq"><span class="cross">✖</span><span> Uppercase letter</span></li>
+        <li id="lowerReq"><span class="cross">✖</span><span> Lowercase letter</span></li>
+        <li id="numReq"><span class="cross">✖</span><span> Number</span></li>
+        <li id="symReq"><span class="cross">✖</span><span> Special character</span></li>
+    </ul>
+
+    <div class="btn-row">
+        <button onclick="copyPassword()">Copy</button>
+        <button onclick="generatePassword()">Generate</button>
+        <button class="toggle" onclick="toggleTheme()">Theme</button>
+    </div>
+</div>
+
+<script>
+function estimateCrackTime(score) {
+    if (score <= 1) return "Instantly";
+    if (score === 2) return "A few minutes";
+    if (score === 3) return "A few hours";
+    if (score === 4) return "Several months";
+    if (score === 5) return "Many years";
+    return "Unknown";
+}
+
+function checkPassword() {
+    const pwd = document.getElementById("password").value;
+    const fill = document.getElementById("strengthFill");
+    const label = document.getElementById("strengthLabel");
+
+    let score = 0;
+
+    updateReq("lenReq", pwd.length >= 8);
+    updateReq("upperReq", /[A-Z]/.test(pwd));
+    updateReq("lowerReq", /[a-z]/.test(pwd));
+    updateReq("numReq", /[0-9]/.test(pwd));
+    updateReq("symReq", /[^A-Za-z0-9]/.test(pwd));
+
+    if (pwd.length >= 8) score++;
+    if (/[A-Z]/.test(pwd)) score++;
+    if (/[a-z]/.test(pwd)) score++;
+    if (/[0-9]/.test(pwd)) score++;
+    if (/[^A-Za-z0-9]/.test(pwd)) score++;
+
+    const percent = (score / 5) * 100;
+    fill.style.width = percent + "%";
+
+    if (score <= 2) {
+        fill.style.background = "var(--weak)";
+        label.textContent = "Weak Password";
+        label.style.color = "var(--weak)";
+    } 
+    else if (score <= 4) {
+        fill.style.background = "var(--medium)";
+        label.textContent = "Medium Strength";
+        label.style.color = "var(--medium)";
+    } 
+    else {
+        fill.style.background = "var(--strong)";
+        label.textContent = "Strong Password";
+        label.style.color = "var(--strong)";
+    }
+
+    document.getElementById("crackTime").textContent =
+        "Estimated crack time: " + estimateCrackTime(score);
+}
+
+function updateReq(id, condition) {
+    const item = document.getElementById(id);
+    const icon = item.querySelector("span");
+
+    if (condition) {
+        icon.textContent = "✔";
+        icon.className = "check";
+    } else {
+        icon.textContent = "✖";
+        icon.className = "cross";
+    }
+}
+
+function togglePassword() {
+    const input = document.getElementById("password");
+    input.type = input.type === "password" ? "text" : "password";
+}
+
+function copyPassword() {
+    const pwd = document.getElementById("password").value;
+    navigator.clipboard.writeText(pwd);
+    alert("Password copied!");
+}
+
+function generatePassword() {
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+";
+    let pwd = "";
+    for (let i = 0; i < 14; i++) {
+        pwd += chars[Math.floor(Math.random() * chars.length)];
+    }
+    document.getElementById("password").value = pwd;
+    checkPassword();
+}
+
+function toggleTheme() {
+    document.body.classList.toggle("dark");
+}
+</script>
+
+</body>
+</html>
